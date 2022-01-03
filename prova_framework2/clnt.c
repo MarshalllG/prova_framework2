@@ -6,7 +6,7 @@
 #define IP "192.168.1.10"
 #define PORT 10000
 #define SIZE 1024
-#define CLIENT_COMMAND "2"
+#define CLIENT_COMMAND "0"
 
 int main(int argc, char *argv[])
 {
