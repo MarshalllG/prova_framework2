@@ -21,7 +21,6 @@
 struct device
 {
     char ipaddr[IP_SIZE];
-    int active_dev;
     char dev_state[SIZE]; // informazioni di stato
 };
 
@@ -32,7 +31,7 @@ struct thread_info
 };
 
 // dichiarazione di variabili globali
-struct device d[MAX_CLIENTS];
+struct device d[MAX_CLIENTS]; // vettore di struct device
 
 /*********************************************************************************
  *********************************************************************************
@@ -45,11 +44,11 @@ void TCPserver (void)
 {
     struct sockaddr_in saddr, caddr; 
     int rc; // per il thread
-    int listensk, sk; // uso due socket: uno di ascolto e uno per la connessione
+    int listensk, sk; // uso due socket: uno di ascolto e uno per gestire la connessione
     socklen_t addr_size; // per l'accept
     pid_t pid; // process identifier della funzione fork
     pthread_t thread; // singolo thread per comunicazioni UDP
-    char clnt_ip[IP_SIZE];
+    char clnt_ip[IP_SIZE]; 
 
 
 
@@ -128,13 +127,16 @@ void serve_client (int csk, char clnt_ip[])
 
    // dialoga in TCP con il client
    bzero(buffer, SIZE);
-   strcpy(buffer, "client connesso: di quale dispositivo devo verificare la temperatura?\nOPTIONS:\n-1\n-2\n");
+   strcpy(buffer, "client connesso: di quale dispositivo devo verificare la temperatura?\nInserire numero dello slave\n");
    send(csk, buffer, strlen(buffer), 0);
 
    bzero(buffer, SIZE);
    recv(csk, buffer, sizeof(buffer), 0);
    if (atoi(buffer) != 0)
+   {    
       i = atoi(buffer);
+      printf("il client vuole conoscere la temperatura del device n°%s\n", buffer);
+   }
 
    if (i > sizeof(d))
    {
@@ -143,9 +145,7 @@ void serve_client (int csk, char clnt_ip[])
       send(csk, buffer, strlen(buffer), 0);
       perror ("errore, dispositivo selezionato non esistente\n");
    }
-
-   printf("il client vuole conoscere la temperatura del device n°%s\n", buffer);
-
+    
    if (atoi(buffer) != 0)
    {
       bzero(buffer, SIZE);
@@ -409,7 +409,6 @@ int update_state (char ip[], char new_state[])
    {
       // aggiorno lo stato
       strcpy(d[index].dev_state, new_state);
-      d[index].active_dev = 1;
 
       printf ("-> modifica stato client %s: %s\n", ip, d[index].dev_state);
       return 1; // restituisco modifica avvenuta con successo
